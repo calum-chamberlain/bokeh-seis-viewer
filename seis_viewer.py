@@ -12,10 +12,11 @@ from obspy import read_events, Catalog
 from matplotlib.path import Path
 
 from bokeh.io import output_file, show
-from bokeh.layouts import gridplot
+from bokeh.layouts import layout, widgetbox
 from bokeh.plotting import figure
 from bokeh.models import (
     LinearColorMapper, ColorBar, ColumnDataSource, HoverTool)
+from bokeh.models.widgets import Slider
 from bokeh.palettes import Viridis256
 from bokeh.tile_providers import STAMEN_TERRAIN
 
@@ -225,11 +226,22 @@ def seis_viewer(filename, showfig=True):
     horiz_source = _extract_section(
         origins=origins, cross_section=x_section_bounds['cross_horiz'],
         swath_width=swath_width)
-    cross_horiz.circle(x='z', y='x', size={'field': 'size'}, source=horiz_source)
+    cross_horiz.circle(x='z', y='x', size={'field': 'size'},
+                       source=horiz_source)
 
-    fig = gridplot([[geomap, cross_vert], [cross_horiz, None]])
+    # Define the widgets!
+    cross_vert_slider = Slider(start=0, end=10, value=5, step=0.1,
+                               title="Vertical cross-section position")
+    cross_horiz_slider = Slider(start=0, end=10, value=5, step=0.1,
+                                title="Verical cross-section position")
+    rotation_slider = Slider(start=0, end=90, value=5, step=1,
+                             title="Cross-section rotation")
+    widgets = widgetbox(cross_vert_slider, cross_horiz_slider,
+                        rotation_slider, width=250)
 
-    output_file("seis_veiwer.html")
+    fig = layout([[geomap, cross_vert], [cross_horiz, widgets]])
+
+    output_file("seis_viewer.html")
     if showfig:
         show(fig)
     return fig
